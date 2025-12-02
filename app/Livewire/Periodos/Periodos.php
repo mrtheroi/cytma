@@ -61,34 +61,50 @@ class Periodos extends Component
     public function generarReporte($periodoId)
     {
         $periodo = PeriodoNomina::with([
+            'registros',
             'registros.empleado',
             'registros.asistencias',
             'registros.detalles.concepto'
         ])->findOrFail($periodoId);
 
         $datosReporte = $periodo->registros->map(function($registro) {
-            $asistencia = $registro->asistenciaNomina ?? null;
 
-            $diasTrabajados = collect([
-                $asistencia?->lunes,
-                $asistencia?->martes,
-                $asistencia?->miercoles,
-                $asistencia?->jueves,
-                $asistencia?->viernes,
-                $asistencia?->sabado,
-                $asistencia?->domingo,
-            ])->filter()->count();
+            $a = $registro->asistencias;
 
-            $horasExtras = collect([
-                $asistencia?->horas_extra_lunes,
-                $asistencia?->horas_extra_martes,
-                $asistencia?->horas_extra_miercoles,
-                $asistencia?->horas_extra_jueves,
-                $asistencia?->horas_extra_viernes,
-                $asistencia?->horas_extra_sabado,
-                $asistencia?->horas_extra_domingo,
-            ])->sum();
+            // Días trabajados
+            $dias = [
+                'lunes'     => $a?->lunes ? 1 : 0,
+                'martes'    => $a?->martes ? 1 : 0,
+                'miercoles' => $a?->miercoles ? 1 : 0,
+                'jueves'    => $a?->jueves ? 1 : 0,
+                'viernes'   => $a?->viernes ? 1 : 0,
+                'sabado'    => $a?->sabado ? 1 : 0,
+                'domingo'   => $a?->domingo ? 1 : 0,
+            ];
 
+            // Horas extras
+            $horas = [
+                'lunes'     => $a?->horas_extra_lunes ?? 0,
+                'martes'    => $a?->horas_extra_martes ?? 0,
+                'miercoles' => $a?->horas_extra_miercoles ?? 0,
+                'jueves'    => $a?->horas_extra_jueves ?? 0,
+                'viernes'   => $a?->horas_extra_viernes ?? 0,
+                'sabado'    => $a?->horas_extra_sabado ?? 0,
+                'domingo'   => $a?->horas_extra_domingo ?? 0,
+            ];
+
+            // Totales
+            $totalDias = array_sum($dias);
+            $totalHoras = array_sum($horas);
+
+            // Costos
+            $costoDia = $registro->empleado->costo_dia;
+            $costoHora = $registro->empleado->costo_hora;
+
+            $horasExtraPagar = $totalHoras * $costoHora;
+            $totalDiasPagar = $totalDias * $costoDia;
+
+            // Conceptos
             $bonos = $registro->detalles
                 ->filter(fn($d) => $d->concepto->tipo === 'percepcion')
                 ->sum('monto');
@@ -97,25 +113,87 @@ class Periodos extends Component
                 ->filter(fn($d) => $d->concepto->tipo === 'deduccion')
                 ->sum('monto');
 
+            $comidas = $registro->detalles
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'comida')
+                ->sum('monto');
+
+            $compensacion = $registro->detalles
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'compensacion')
+                ->sum('monto');
+
+            $apoyo = $registro->detalles
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'apoyo')
+                ->sum('monto');
+
+            $anticipo = $registro->detalles
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'anticipo')
+                ->sum('monto');
+
+            $porPagar = $registro->detalles
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'por pagar')
+                ->sum('monto');
+
+            // ---- CALCULOS IMPORTANTES ----
+
+            // Percepción Total igual a su reporte original
+            $percepcionTotal =
+                ($totalDias * $costoDia) +
+                $horasExtraPagar +
+                $bonos +
+                $comidas +
+                $compensacion +
+                $apoyo;
+
+            // Deducciones Totales
+            $deduccionesTotal = $descuentos + $anticipo + $porPagar;
+
+            // Neto / Saldo Final
+            $neto = $percepcionTotal - $deduccionesTotal;
+
             return [
-                'empleado' => $registro->empleado->nombre . ' ' . $registro->empleado->apellido_paterno,
-                'pactado' => $registro->sueldo_pactado,
-                'turno' => $registro->empleado->turno,
-                'categoria' => $registro->empleado->categoria,
-                'dias_trabajados' => $diasTrabajados,
-                'horas_extras' => $horasExtras,
-                'bonos' => $bonos,
-                'descuentos' => $descuentos,
-                'neto' => $registro->neto,
+                'empleado'            => $registro->empleado->nombre.' '.$registro->empleado->apellido_paterno,
+                'pactado'             => $registro->sueldo_pactado,
+                'turno'               => $registro->empleado->turno,
+                'categoria'           => $registro->empleado->categoria,
+
+                'dias'                => $dias,
+                'horas'               => $horas,
+
+                'total_dias'          => $totalDias,
+                'total_horas'         => $totalHoras,
+
+                'costo_dia'           => $costoDia,
+                'costo_hora'          => $costoHora,
+
+                'horas_extra_pagar'   => $horasExtraPagar,
+
+                'dia_hr_extra'        => $totalDiasPagar + $horasExtraPagar,
+
+                'comidas'             => $comidas,
+                'compensacion'        => $compensacion,
+                'apoyo'               => $apoyo,
+
+                'anticipo'            => $anticipo,
+                'por_pagar'           => $porPagar,
+
+                'bonos'               => $bonos,
+                'descuentos'          => $descuentos,
+
+                'percepciones'        => $percepcionTotal,
+                'deducciones'         => $deduccionesTotal,
+                'neto'                => $neto,
             ];
         });
 
         $pdf = Pdf::loadView('reportes.reporte_nomina', [
             'periodo' => $periodo,
             'datosReporte' => $datosReporte,
-        ]);
+        ])->setPaper('tabloid', 'landscape');
 
-        return response()->streamDownload(fn() => print($pdf->output()), "Nomina_{$periodo->fecha_inicio->format('Ymd')}_{$periodo->fecha_fin->format('Ymd')}.pdf");
+        return response()->streamDownload(
+            fn() => print($pdf->output()),
+            "Nomina_{$periodo->fecha_inicio->format('Ymd')}_{$periodo->fecha_fin->format('Ymd')}.pdf"
+        );
     }
 
     public function crearPeriodo()
