@@ -14,9 +14,9 @@ class ConceptosNominaSeeder extends Seeder
     public function run(): void
     {
         ConceptoNomina::create(['tipo' => 'percepcion', 'nombre' => 'comidas']);
-        ConceptoNomina::create(['tipo' => 'percepcion', 'nombre' => 'compensación']);
-        ConceptoNomina::create(['tipo' => 'percepcion', 'nombre' => 'apoyo pasajes y estímulos']);
+        ConceptoNomina::create(['tipo' => 'percepcion', 'nombre' => 'compensacion']);
+        ConceptoNomina::create(['tipo' => 'percepcion', 'nombre' => 'apoyo_pasajes_y_estimulos']);
         ConceptoNomina::create(['tipo' => 'deduccion', 'nombre' => 'anticipo']);
-        ConceptoNomina::create(['tipo' => 'deduccion', 'nombre' => 'por pagar']);
+        //ConceptoNomina::create(['tipo' => 'deduccion', 'nombre' => 'por_pagar']);
     }
 }

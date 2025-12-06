@@ -104,7 +104,7 @@
     </flux:modal>
 
 
-    <flux:modal name="detalle-periodo" class="w-[800px]">
+    <flux:modal name="detalle-periodo" class="w-[900px] !max-w-[1600px]">
         @if($periodo_detalle)
             <flux:heading size="lg">Detalle del periodo</flux:heading>
 

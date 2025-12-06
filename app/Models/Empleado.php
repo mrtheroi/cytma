@@ -18,8 +18,12 @@ class Empleado extends Model
         'apellido_materno',
         'turno',
         'categoria',
+        'unidad_negocio',
+        'adscrito',
+        'sueldo_pactado',
         'costo_dia',
         'costo_hora',
+        'costo_hora_extra',
     ];
 
     protected $hidden = [

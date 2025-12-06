@@ -28,10 +28,10 @@ class RegistroNomina extends Model
     ];
 
     // Relaciones sugeridas
-    // public function periodoNomina()
-    // {
-    //     return $this->belongsTo(PeriodoNomina::class);
-    // }
+    public function periodoNomina()
+    {
+        return $this->belongsTo(PeriodoNomina::class);
+    }
 
     // public function empleado()
     // {

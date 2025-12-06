@@ -21,8 +21,12 @@ return new class extends Migration
 
             $table->string('turno')->nullable()->comment('Matutino | Vespertino');
             $table->string('categoria')->nullable()->comment('Puesto');
+            $table->string('unidad_negocio')->nullable()->comment('Unidad de negocio a la que está adscrito el empleado');
+            $table->string('adscrito')->nullable()->comment('Lugar físico donde trabaja el empleado');
+            $table->decimal('sueldo_pactado', 10, 2)->default(0)->comment('Sueldo base acordado con el empleado para el período');
             $table->decimal('costo_dia', 10, 2)->default(0);
             $table->decimal('costo_hora', 10, 2)->default(0);
+            $table->decimal('costo_hora_extra', 10, 2)->default(0);
 
             $table->softDeletes();
             $table->timestamps();

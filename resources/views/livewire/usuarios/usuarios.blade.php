@@ -139,7 +139,7 @@
                     <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Nombre de usuario</th>
                     <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Email de usuario</th>
                     <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Rol de usuario</th>
-                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Acción</th>
+                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -159,9 +159,11 @@
                             @endif
                         </td>
                         <td class="px-4 py-2 text-sm text-center">
-                            <flux:button variant="primary" wire:click="edit({{ $user->id }})" size="sm">Editar</flux:button>
+                            <flux:button variant="primary" color="cyan" size="sm" wire:click="abrirAnticipo({{ $user->id }})">Anticipo</flux:button>
 
-                            <flux:button variant="danger" wire:click="confirmDelete({{ $user->id }})" size="sm" class="ml-2">Eliminar</flux:button>
+                            <flux:button variant="primary" wire:click="edit({{ $user->id }})" size="sm" class="ml-1">Editar</flux:button>
+
+                            <flux:button variant="danger" wire:click="confirmDelete({{ $user->id }})" size="sm" class="ml-1">Eliminar</flux:button>
                         </td>
                     </tr>
                 @empty
@@ -200,13 +202,20 @@
                 <flux:text class="mt-2">
                     {{ $editingId ? 'Actualiza la información del usuario.' : 'Ingresa la información del nuevo usuario.' }}
                 </flux:text>
+
+                <flux:text class="mt-2">
+                    {{ $editingId 
+                        ? 'La información del usuario se actualizará. Los registros de nómina existentes permanecerán intactos.' 
+                        : 'Se creará el usuario y su perfil de empleado. Los registros de nómina se generarán automáticamente cuando se cree un periodo.' 
+                    }}
+                </flux:text>
             </div>
 
             <!-- Nombres -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <flux:input wire:model="name" label="Nombre(s)" placeholder="Nombre" />
-                <flux:input wire:model="apellido_paterno" label="Apellido paterno" placeholder="Apellido paterno" />
-                <flux:input wire:model="apellido_materno" label="Apellido materno" placeholder="Apellido materno" />
+                <flux:input wire:model="first_name" label="Apellido paterno" placeholder="Apellido paterno" />
+                <flux:input wire:model="last_name" label="Apellido materno" placeholder="Apellido materno" />
             </div>
 
             <!-- Email y contraseña -->
@@ -246,8 +255,7 @@
                     <flux:select.option>Vespertino</flux:select.option>
                 </flux:select>
 
-                <flux:select wire:model="ubicacion" label="Ubicación" placeholder="Selecciona una ubicación">
-                    <flux:select.option>Carretera Campeche - Mérida</flux:select.option>
+                <flux:select wire:model="ubicacion" label="Unidad de negocio" placeholder="Selecciona la unidad de negocio">
                     <flux:select.option>KM9 - Campeche</flux:select.option>
                     <flux:select.option>Chocholá</flux:select.option>
                 </flux:select>
@@ -260,9 +268,9 @@
 
             <!-- Sueldos y costos -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <flux:input wire:model="costo_dia" type="number" step="0.01" label="Costo por día" placeholder="536.00" />
-                <flux:input wire:model="costo_hora" type="number" step="0.01" label="Costo por hora" placeholder="67.00" />
-                <flux:input wire:model="sueldo_pactado" type="number" step="0.01" label="Sueldo pactado" placeholder="6500.00" />
+                <flux:input wire:model="costo_dia" type="number" step="0.01" label="Costo por día" placeholder="$536.00" />
+                <flux:input wire:model="costo_hora_extra" type="number" step="0.01" label="Costo por hora extra" placeholder="$67.00" />
+                <flux:input wire:model="sueldo_pactado" type="number" step="0.01" label="Sueldo pactado" placeholder="$6500.00" />
             </div>
 
             <!-- Botones -->
@@ -291,5 +299,31 @@
                 <flux:button variant="danger" wire:click="deleteUser">Eliminar</flux:button>
             </div>
         </div>
+    </flux:modal>
+
+    <flux:modal name="modal-anticipo" class="w-[400px]">
+        <form wire:submit.prevent="guardarAnticipo" class="space-y-4">
+
+            <flux:heading size="lg">
+                {{ $detalleAnticipoId ? 'Editar anticipo' : 'Registrar anticipo' }}
+            </flux:heading>
+
+            <flux:input 
+                type="number" 
+                step="0.01" 
+                wire:model="montoAnticipo"
+                label="Monto del anticipo"
+            />
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancelar</flux:button>
+                </flux:modal.close>
+                <flux:button variant="primary" type="submit">
+                    {{ $detalleAnticipoId ? 'Actualizar' : 'Guardar' }}
+                </flux:button>
+            </div>
+
+        </form>
     </flux:modal>
 </div>

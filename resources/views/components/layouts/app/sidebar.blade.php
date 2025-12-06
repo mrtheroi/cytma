@@ -15,15 +15,17 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="users" :href="route('usuarios')" :current="request()->routeIs('usuarios')" wire:navigate>{{ __('Usuarios') }}</flux:navlist.item>
-                    {{-- <flux:navlist.item icon="document-currency-dollar" :href="route('usuarios')" :current="request()->routeIs('usuarios')" wire:navigate>{{ __('Nómina') }}</flux:navlist.item> --}}
 
-                    <!-- NUEVO GRUPO DE NÓMINA -->
-                    <flux:sidebar.group expandable expanded="false" icon="document-currency-dollar" heading="Nómina" class="grid">
+                    {{-- <flux:navlist.group expandable expanded="false" icon="document-currency-dollar" heading="Nómina" class="grid">
                         <flux:navlist.item icon="document-currency-dollar" :href="route('periodos')" :current="request()->routeIs('periodos')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
+                        <flux:navlist.item icon="document-currency-dollar" :href="route('asistencias')" :current="request()->routeIs('asistencias')" wire:navigate>{{ __('Asistencias') }}</flux:navlist.item>
+                    </flux:navlist.group> --}}
 
-                        {{-- <flux:sidebar.item href="#">Android app</flux:sidebar.item>
-                        <flux:sidebar.item href="#">Brand guidelines</flux:sidebar.item> --}}
-                    </flux:sidebar.group>
+                    <flux:navlist.group expandable expanded="false" heading="Nómina" class="hidden lg:grid">
+                        <flux:navlist.item :href="route('periodos')" :current="request()->routeIs('periodos')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('asistencias')" :current="request()->routeIs('asistencias')" wire:navigate>{{ __('Asistencias') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('percepciones')" :current="request()->routeIs('percepciones')" wire:navigate>{{ __('Percepciones') }}</flux:navlist.item>
+                    </flux:navlist.group>
 
                 </flux:navlist.group>
             </flux:navlist>

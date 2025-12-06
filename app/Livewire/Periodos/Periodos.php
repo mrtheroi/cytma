@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Periodos;
 
+use App\Models\AsistenciaNomina;
+use App\Models\DetalleNomina;
+use App\Models\Empleado;
 use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use App\Models\PeriodoNomina;
+use App\Models\RegistroNomina;
 use Carbon\Carbon;
 use Livewire\Component;
 use Flux\Flux;
@@ -12,7 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class Periodos extends Component
 {
     public $search;
-    public $unidad_negocio;
+    public $unidad_negocio = '';
     public $editingId;
 
     public $fecha_inicio_crear;
@@ -105,16 +109,16 @@ class Periodos extends Component
             $totalDiasPagar = $totalDias * $costoDia;
 
             // Conceptos
-            $bonos = $registro->detalles
-                ->filter(fn($d) => $d->concepto->tipo === 'percepcion')
-                ->sum('monto');
+            // $bonos = $registro->detalles
+            //     ->filter(fn($d) => $d->concepto->tipo === 'percepcion')
+            //     ->sum('monto');
 
-            $descuentos = $registro->detalles
-                ->filter(fn($d) => $d->concepto->tipo === 'deduccion')
-                ->sum('monto');
+            // $descuentos = $registro->detalles
+            //     ->filter(fn($d) => $d->concepto->tipo === 'deduccion')
+            //     ->sum('monto');
 
             $comidas = $registro->detalles
-                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'comida')
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'comidas')
                 ->sum('monto');
 
             $compensacion = $registro->detalles
@@ -122,16 +126,15 @@ class Periodos extends Component
                 ->sum('monto');
 
             $apoyo = $registro->detalles
-                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'apoyo')
+                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'apoyo_pasajes_y_estimulos')
                 ->sum('monto');
 
             $anticipo = $registro->detalles
                 ->filter(fn($d) => strtolower($d->concepto->nombre) === 'anticipo')
                 ->sum('monto');
-
-            $porPagar = $registro->detalles
-                ->filter(fn($d) => strtolower($d->concepto->nombre) === 'por pagar')
-                ->sum('monto');
+            // $porPagar = $registro->detalles
+            //     ->filter(fn($d) => strtolower($d->concepto->nombre) === 'por_pagar')
+            //     ->sum('monto');
 
             // ---- CALCULOS IMPORTANTES ----
 
@@ -139,13 +142,14 @@ class Periodos extends Component
             $percepcionTotal =
                 ($totalDias * $costoDia) +
                 $horasExtraPagar +
-                $bonos +
+                //$bonos +
                 $comidas +
                 $compensacion +
                 $apoyo;
 
             // Deducciones Totales
-            $deduccionesTotal = $descuentos + $anticipo + $porPagar;
+            //$deduccionesTotal = $descuentos + $anticipo + $porPagar;
+            $deduccionesTotal = $anticipo;
 
             // Neto / Saldo Final
             $neto = $percepcionTotal - $deduccionesTotal;
@@ -164,6 +168,7 @@ class Periodos extends Component
 
                 'costo_dia'           => $costoDia,
                 'costo_hora'          => $costoHora,
+                'costo_hora_extra'    => $registro->empleado->costo_hora_extra,
 
                 'horas_extra_pagar'   => $horasExtraPagar,
 
@@ -174,12 +179,12 @@ class Periodos extends Component
                 'apoyo'               => $apoyo,
 
                 'anticipo'            => $anticipo,
-                'por_pagar'           => $porPagar,
+                'por_pagar'           => $percepcionTotal,
 
-                'bonos'               => $bonos,
-                'descuentos'          => $descuentos,
+                // 'bonos'               => $bonos,
+                // 'descuentos'          => $descuentos,
 
-                'percepciones'        => $percepcionTotal,
+                'percepcion_total'    => $totalDiasPagar + $compensacion + $horasExtraPagar,
                 'deducciones'         => $deduccionesTotal,
                 'neto'                => $neto,
             ];
@@ -201,6 +206,7 @@ class Periodos extends Component
         // Validar si ya existe
         $existe = PeriodoNomina::where('fecha_inicio', $this->fecha_inicio_crear)
             ->where('fecha_fin', $this->fecha_fin_crear)
+            ->where('unidad_negocio', $this->unidad_negocio)
             ->exists();
 
         if ($existe) {
@@ -212,17 +218,34 @@ class Periodos extends Component
             return;
         }
 
-        PeriodoNomina::create([
+        $periodoCreado = PeriodoNomina::create([
             'fecha_inicio' => $this->fecha_inicio_crear,
             'fecha_fin' => $this->fecha_fin_crear,
             'unidad_negocio' => $this->unidad_negocio, // si quieres asignar unidad
         ]);
 
-        // $this->dispatch('notify', [
-        //     'title' => 'Periodo creado',
-        //     'message' => "Se creó el periodo del {$this->fecha_inicio_crear->format('d/m/y')} al {$this->fecha_fin_crear->format('d/m/y')}",
-        //     'type' => 'success'
-        // ]);
+        $empleados = Empleado::where('unidad_negocio', $this->unidad_negocio)->get();
+
+        if($empleados->isNotEmpty()){
+            foreach ($empleados as $empleado) {
+                // Crear registro de nómina para cada empleado
+                $registroNomina = RegistroNomina::create([
+                    'periodo_nomina_id' => $periodoCreado->id,
+                    'empleado_id' => $empleado->id,
+                    'sueldo_pactado' => $empleado->sueldo_pactado,
+                ]);
+
+                DetalleNomina::create([
+                    'registro_nomina_id' => $registroNomina->id,
+                    'concepto_nomina_id' => 4, // asignamos el concepto de "anticipo" por defecto pero en 0 ya que esto se puede modificar desde usuarios
+                    'monto' => 0,
+                ]);
+
+                AsistenciaNomina::create([
+                    'registro_nomina_id' => $registroNomina->id,
+                ]);
+            }
+        }
 
         LivewireAlert::title('¡Éxito!')
             ->text('Periodo creado correctamente')

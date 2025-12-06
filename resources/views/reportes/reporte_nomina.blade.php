@@ -96,32 +96,34 @@
     <thead>
         <tr>
             <th rowspan="2">Empleado</th>
+            <th rowspan="2">Pactado</th>
             <th rowspan="2">Turno</th>
             <th rowspan="2">Categoría</th>
-            <th rowspan="2">Pactado</th>
 
             <th colspan="7">Asistencias</th>
             <th colspan="7">Horas Extras</th>
 
             <th rowspan="2">Total Días</th>
-            <th rowspan="2">Total Hrs</th>
-
-            <th rowspan="2">HE a pagar</th>
-
-            <th rowspan="2">Día + Hr Extra</th>
-
             <th rowspan="2">Costo Día</th>
             <th rowspan="2">Costo Hora</th>
+            <th rowspan="2">Costo Hr Extra</th>
+
+            <th rowspan="2">Total H.E.</th>
+
+            <th rowspan="2">H.E. a pagar</th>
+            <th rowspan="2">Compensación</th>
+
+            <th rowspan="2">Día + H.E. Trabajadas</th>
+            <th rowspan="2">Percepción total</th>
 
             <th rowspan="2">Comidas</th>
-            <th rowspan="2">Compensación</th>
+            
             <th rowspan="2">Apoyo pasajes y estimulo</th>
 
-            <th rowspan="2">Anticipo</th>
-            <th rowspan="2">Por pagar</th>
-
-            <th rowspan="2">Percepciones</th>
             <th rowspan="2">Deducciones</th>
+
+            <th rowspan="2">Por pagar</th>
+            <th rowspan="2">Anticipo</th>
             <th rowspan="2">Saldo</th>
         </tr>
 
@@ -135,9 +137,9 @@
         @foreach ($datosReporte as $r)
         <tr>
             <td>{{ $r['empleado'] }}</td>
+            <td>${{ number_format($r['pactado'], 2) }}</td>
             <td>{{ $r['turno'] }}</td>
             <td>{{ $r['categoria'] }}</td>
-            <td>${{ number_format($r['pactado'], 2) }}</td>
 
             {{-- Asistencias --}}
             @foreach ($r['dias'] as $d)
@@ -150,29 +152,26 @@
             @endforeach
 
             <td>{{ $r['total_dias'] }}</td>
+            <td>${{ number_format($r['costo_dia'], 2) }}</td>
+            <td>${{ number_format($r['costo_hora'], 2) }}</td>
+            <td>${{ number_format($r['costo_hora_extra'], 2) }}</td>
+
             <td>{{ $r['total_horas'] }}</td>
 
             <td>${{ number_format($r['horas_extra_pagar'], 2) }}</td>
-
+            <td>${{ number_format($r['compensacion'] ?? 0, 2) }}</td>
             <td>${{ number_format($r['dia_hr_extra'], 2) }}</td>
-
-            <td>${{ number_format($r['costo_dia'], 2) }}</td>
-            <td>${{ number_format($r['costo_hora'], 2) }}</td>
+            <td>${{ number_format($r['percepcion_total'], 2) }}</td>
 
             {{-- Conceptos (comidas, compensación, apoyo) --}}
             <td>${{ number_format($r['comidas'] ?? 0, 2) }}</td>
-            <td>${{ number_format($r['compensacion'] ?? 0, 2) }}</td>
+            
             <td>${{ number_format($r['apoyo'] ?? 0, 2) }}</td>
 
             {{-- Deducciones específicas --}}
-            <td>${{ number_format($r['anticipo'] ?? 0, 2) }}</td>
-            <td>${{ number_format($r['por_pagar'] ?? 0, 2) }}</td>
-
-            {{-- <td>${{ number_format($r['bonos'], 2) }}</td>
-            <td>${{ number_format($r['descuentos'], 2) }}</td>
-            <td>${{ number_format($r['neto'], 2) }}</td> --}}
-            <td>${{ number_format($r['percepciones'], 2) }}</td>
             <td>${{ number_format($r['deducciones'], 2) }}</td>
+            <td>${{ number_format($r['por_pagar'] ?? 0, 2) }}</td>
+            <td>${{ number_format($r['anticipo'] ?? 0, 2) }}</td>
             <td>${{ number_format($r['neto'], 2) }}</td>
         </tr>
         @endforeach
