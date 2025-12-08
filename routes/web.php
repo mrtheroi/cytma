@@ -46,4 +46,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
+Route::get('/empleado/confirmacion', function () {
+    return view('empleado.confirmacion');
+})->name('empleado.confirmacion');
+
 //Route::get('login-empleado', LoginEmpleado::class)->name('login-empleado');

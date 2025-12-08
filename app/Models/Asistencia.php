@@ -18,6 +18,14 @@ class Asistencia extends Model
         'horas_extra',
     ];
 
+    protected $casts = [
+        'entrada'        => 'datetime',
+        'salida'         => 'datetime',
+        'entrada_extra'  => 'datetime',
+        'salida_extra'   => 'datetime',
+        'fecha'          => 'date:Y-m-d',
+    ];
+
     protected $hidden = [
         'created_at',
         'updated_at',
