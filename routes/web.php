@@ -20,13 +20,15 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware(['auth', 'verified', 'role:administrador|super_administrador'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Route::get('usuarios', Usuarios::class)->name('usuarios');
     Route::get('periodos', Periodos::class)->name('periodos');
     Route::get('asistencias', Asistencias::class)->name('asistencias');
     Route::get('percepciones', Percepciones::class)->name('percepciones');
+
+    Route::get('login-empleado', LoginEmpleado::class)->name('login-empleado');
 
     Route::get('settings/profile', Profile::class)->name('profile.edit');
     Route::get('settings/password', Password::class)->name('user-password.edit');
@@ -44,14 +46,4 @@ Route::middleware(['auth', 'verified', 'role:administrador|super_administrador']
         ->name('two-factor.show');
 });
 
-Route::get('login-empleado', LoginEmpleado::class)->name('login-empleado');
-
-// Rutas solo para administradores y super administradores
-// Route::middleware(['auth', 'role:administrador|super_administrador'])->group(function () {
-
-//     Route::get('usuarios', Usuarios::class)->name('usuarios');
-//     Route::get('periodos', Periodos::class)->name('periodos');
-//     Route::get('asistencias', Asistencias::class)->name('asistencias');
-//     Route::get('percepciones', Percepciones::class)->name('percepciones');
-
-// });
+//Route::get('login-empleado', LoginEmpleado::class)->name('login-empleado');

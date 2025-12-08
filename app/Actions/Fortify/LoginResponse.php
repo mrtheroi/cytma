@@ -12,9 +12,9 @@ class LoginResponse implements LoginResponseContract
 
         // Si es trabajador → cerrar sesión y redirigir
         if ($user->hasRole('trabajador')) {
-            auth()->logout(); // cierra la sesión de Laravel
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            // auth()->logout(); // cierra la sesión de Laravel
+            // $request->session()->invalidate();
+            // $request->session()->regenerateToken();
 
             return redirect()->route('login-empleado'); // ruta pública
         }
