@@ -154,6 +154,14 @@ class Periodos extends Component
             // Neto / Saldo Final
             $neto = $percepcionTotal - $deduccionesTotal;
 
+            // === ACTUALIZAR EL REGISTRO DE NOMINA ===
+            $registro->update([
+                'percepciones_totales' => $percepcionTotal,
+                'deducciones_totales'  => $deduccionesTotal,
+                'total_horas_extras'   => $totalHoras,
+                'neto'                 => $neto,
+            ]);
+
             return [
                 'empleado'            => $registro->empleado->nombre.' '.$registro->empleado->apellido_paterno,
                 'pactado'             => $registro->sueldo_pactado,

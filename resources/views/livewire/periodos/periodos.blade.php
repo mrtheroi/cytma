@@ -113,7 +113,7 @@
             </flux:text>
             <flux:text>Unidad: {{ $periodo_detalle->unidad_negocio }}</flux:text>
 
-            <table class="min-w-full mt-4 divide-y divide-gray-200">
+            {{-- <table class="min-w-full mt-4 divide-y divide-gray-200">
                 <thead>
                     <tr>
                         <th>Empleado</th>
@@ -131,6 +131,45 @@
                             <td>{{ number_format($registro->percepciones_totales, 2) }}</td>
                             <td>{{ number_format($registro->deducciones_totales, 2) }}</td>
                             <td>{{ number_format($registro->neto, 2) }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-4 text-center text-gray-400">
+                                No hay registros
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table> --}}
+            <table class="min-w-full divide-y divide-gray-200 bg-white shadow rounded-lg mt-4">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Empleado</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Sueldo</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Percepciones</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Deducciones</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Neto</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($periodo_detalle->registros as $registro)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 text-sm text-gray-700 text-center">
+                                {{ $registro->empleado->nombre }} {{ $registro->empleado->apellido_paterno }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-700 text-center">
+                                {{ number_format($registro->sueldo_pactado, 2) }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-700 text-center">
+                                {{ number_format($registro->percepciones_totales, 2) }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-700 text-center">
+                                {{ number_format($registro->deducciones_totales, 2) }}
+                            </td>
+                            <td class="px-4 py-2 text-sm text-gray-700 text-center">
+                                {{ number_format($registro->neto, 2) }}
+                            </td>
                         </tr>
                     @empty
                         <tr>

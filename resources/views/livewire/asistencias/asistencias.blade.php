@@ -23,7 +23,7 @@
                             <th class="px-2 text-center text-xs font-medium text-gray-500 uppercase">{{ $dia }}</th>
                         @endforeach
 
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Acción</th>
+                        {{-- <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Acción</th> --}}
                     </tr>
                 </thead>
 
@@ -52,20 +52,21 @@
                                 <td class="text-center">
                                     <flux:checkbox 
                                         wire:model="dias.{{ $reg->id }}.{{ $dia }}"
-                                        class="mx-auto" 
+                                        class="mx-auto pointer-events-none"
                                     />
                                 </td>
                                 <td class="text-center w-16">
                                     <input type="number" min="0"
                                         wire:model="horasExtras.{{ $reg->id }}.{{ $dia }}"
                                         class="w-14 border rounded p-1 text-sm text-center"
+                                        disabled
                                     >
                                 </td>
                             @endforeach
 
-                            <td class="px-4 py-2 text-center">
+                            {{-- <td class="px-4 py-2 text-center">
                                 <flux:button variant="primary" wire:click="guardarFila({{ $reg->id }})" size="sm" class="ml-1">Guardar</flux:button>
-                            </td>
+                            </td> --}}
                         </tr>
                     @empty
                         <tr>
