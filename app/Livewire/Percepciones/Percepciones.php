@@ -100,7 +100,7 @@ class Percepciones extends Component
             'percepciones_totales' => $total,
             'neto' => $total - $registro->deducciones_totales,
         ]);
-
+        $registro->calcularNomina();
         LivewireAlert::title('¡Éxito!')
             ->text('Percepciones guardadas correctamente.')
             ->success()

@@ -163,6 +163,7 @@ class LoginEmpleado extends Component
             $asistNomina->horas_extra_domingo;
 
         $registroNomina->save();
+        $registroNomina->calcularNomina();
     }
 
     public function render()

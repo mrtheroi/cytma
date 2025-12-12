@@ -109,7 +109,7 @@ class Usuarios extends Component
         $registro->deducciones_totales += $this->montoAnticipo;
 
         $registro->save();
-
+        $registro->calcularNomina();
         Flux::modal('modal-anticipo')->close();
 
         LivewireAlert::title('¡Éxito!')

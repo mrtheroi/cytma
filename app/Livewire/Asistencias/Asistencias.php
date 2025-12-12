@@ -138,7 +138,7 @@ class Asistencias extends Component
             'domingo' => $this->dias[$registroId]['domingo'],
             'horas_extra_domingo' => $this->horasExtras[$registroId]['domingo'] ?? 0,
         ]);
-
+        $asistencia->registroNomina->calcularNomina();
         LivewireAlert::title('¡Éxito!')
             ->text('Cambios guardados correctamente.')
             ->success()

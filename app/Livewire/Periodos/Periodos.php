@@ -43,7 +43,10 @@ class Periodos extends Component
         $this->resetValidation();
 
         // Calcular el siguiente periodo automáticamente
-        $ultimo = PeriodoNomina::orderBy('fecha_fin', 'desc')->first();
+        // $ultimo = PeriodoNomina::orderBy('fecha_fin', 'desc')->first();
+        $ultimo = PeriodoNomina::where('unidad_negocio', $this->unidad_negocio)
+            ->orderBy('fecha_fin', 'desc')
+            ->first();
 
         if (!$ultimo) {
             // Primer periodo automático
@@ -155,12 +158,12 @@ class Periodos extends Component
             $neto = $percepcionTotal - $deduccionesTotal;
 
             // === ACTUALIZAR EL REGISTRO DE NOMINA ===
-            $registro->update([
-                'percepciones_totales' => $percepcionTotal,
-                'deducciones_totales'  => $deduccionesTotal,
-                'total_horas_extras'   => $totalHoras,
-                'neto'                 => $neto,
-            ]);
+            // $registro->update([
+            //     'percepciones_totales' => $percepcionTotal,
+            //     'deducciones_totales'  => $deduccionesTotal,
+            //     'total_horas_extras'   => $totalHoras,
+            //     'neto'                 => $neto,
+            // ]);
 
             return [
                 'empleado'            => $registro->empleado->nombre.' '.$registro->empleado->apellido_paterno,
