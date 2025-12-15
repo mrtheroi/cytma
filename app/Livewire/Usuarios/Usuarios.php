@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Usuarios;
 
+use App\Models\AsistenciaNomina;
 use App\Models\ConceptoNomina;
 use App\Models\DetalleNomina;
 use App\Models\Empleado;
@@ -119,6 +120,7 @@ class Usuarios extends Component
             ->position('top-end')
             ->show();
     }
+
     public function abrirAnticipo($userId)
     {
         // Obtener al empleado por user_id
@@ -242,6 +244,8 @@ class Usuarios extends Component
             $empleado = Empleado::where('user_id', $user->id)->first();
 
             if ($empleado) {
+                $costoDia = round($this->sueldo_pactado / 7, 4);
+                $costoHora = round($costoDia / 8, 4);
                 $empleado->update([
                     'nombre' => $this->name,
                     'apellido_paterno' => $this->first_name,
@@ -251,9 +255,9 @@ class Usuarios extends Component
                     'categoria' => $this->categoria,
                     'unidad_negocio' => $this->ubicacion,
                     'adscrito' => $this->adscrito,
-                    'costo_dia' => $this->costo_dia,
-                    'costo_hora' => $this->costo_dia / 8,
-                    'costo_hora_extra' => $this->costo_hora_extra,
+                    'costo_dia' => $costoDia,
+                    'costo_hora' => $costoHora,
+                    'costo_hora_extra' => round($this->costo_hora_extra, 4),
                 ]);
             }
         } else {
@@ -265,9 +269,10 @@ class Usuarios extends Component
                 'password' => Hash::make($this->password),
             ]);
 
-            $hora_costo = $this->costo_dia / 8;
+            $this->costo_dia = round($this->sueldo_pactado / 7, 4);
+            $hora_costo = round($this->costo_dia / 8, 4);
 
-            Empleado::create([
+            $empleado = Empleado::create([
                 'user_id' => $user->id,
                 'nombre' => $this->name,
                 'apellido_paterno' => $this->first_name,
@@ -280,8 +285,36 @@ class Usuarios extends Component
                 'adscrito' => $this->adscrito,
                 'costo_dia' => $this->costo_dia,
                 'costo_hora' => $hora_costo,
-                'costo_hora_extra' => $this->costo_hora_extra,
+                'costo_hora_extra' => round($this->costo_hora_extra, 4),
             ]);
+
+            // ---- AGREGAR AL PERIODO ACTIVO AUTOMÁTICAMENTE ----
+            $periodo = PeriodoNomina::whereDate('fecha_inicio', '<=', today())
+                ->whereDate('fecha_fin', '>=', today())
+                ->where('unidad_negocio', $empleado->unidad_negocio)
+                ->first();
+
+            if ($periodo) {
+
+                // Crear registro de nómina
+                $registroNomina = RegistroNomina::create([
+                    'periodo_nomina_id' => $periodo->id,
+                    'empleado_id' => $empleado->id,
+                    'sueldo_pactado' => $empleado->sueldo_pactado,
+                ]);
+
+                // Crear anticipo inicial
+                DetalleNomina::create([
+                    'registro_nomina_id' => $registroNomina->id,
+                    'concepto_nomina_id' => 4, // anticipo
+                    'monto' => 0,
+                ]);
+
+                // Crear asistencia inicial
+                AsistenciaNomina::create([
+                    'registro_nomina_id' => $registroNomina->id,
+                ]);
+            }
         }
 
         $user->syncRoles([$this->role]);

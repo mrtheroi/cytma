@@ -268,9 +268,9 @@
 
             <!-- Sueldos y costos -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <flux:input wire:model="costo_dia" type="number" step="0.01" label="Costo por día" placeholder="$536.00" />
-                <flux:input wire:model="costo_hora_extra" type="number" step="0.01" label="Costo por hora extra" placeholder="$67.00" />
-                <flux:input wire:model="sueldo_pactado" type="number" step="0.01" label="Sueldo pactado" placeholder="$6500.00" />
+                <flux:input wire:model="sueldo_pactado" type="number" step="0.0001" label="Sueldo pactado" placeholder="$6500.00" />
+                {{-- <flux:input wire:model="costo_dia" type="number" step="0.0001" label="Costo por día" placeholder="$536.00" /> --}}
+                <flux:input wire:model="costo_hora_extra" type="number" step="0.0001" label="Costo por hora extra" placeholder="$67.00" />
             </div>
 
             <!-- Botones -->

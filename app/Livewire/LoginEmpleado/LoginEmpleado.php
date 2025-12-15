@@ -110,7 +110,13 @@ class LoginEmpleado extends Component
     public function registrarEnNomina(Asistencia $asistencia)
     {
         // 1. Detectar a qué periodo pertenece
-        $periodo = PeriodoNomina::whereDate('fecha_inicio', '<=', $asistencia->fecha)
+        // $periodo = PeriodoNomina::whereDate('fecha_inicio', '<=', $asistencia->fecha)
+        //     ->whereDate('fecha_fin', '>=', $asistencia->fecha)
+        //     ->first();
+        $empleado = Empleado::find($asistencia->empleado_id);
+
+        $periodo = PeriodoNomina::where('unidad_negocio', $empleado->unidad_negocio)
+            ->whereDate('fecha_inicio', '<=', $asistencia->fecha)
             ->whereDate('fecha_fin', '>=', $asistencia->fecha)
             ->first();
 

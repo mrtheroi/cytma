@@ -24,11 +24,9 @@ class Percepciones extends Component
     public function mount()
     {
         // Detectar período actual
-        $periodo = PeriodoNomina::whereDate('fecha_inicio', '<=', today())
-            ->whereDate('fecha_fin', '>=', today())
-            ->first();
+        $periodos = PeriodoNomina::orderBy('fecha_inicio', 'desc')->pluck('id');
 
-        if (!$periodo) {
+        if (!$periodos) {
             $this->registros = collect();
             return;
         }
@@ -38,7 +36,7 @@ class Percepciones extends Component
 
         // Cargar registros de nómina con detalles
         $this->registros = RegistroNomina::with(['empleado', 'detalles.concepto'])
-            ->where('periodo_nomina_id', $periodo->id)
+            ->whereIn('periodo_nomina_id', $periodos)
             ->get();
 
         // Inicializar montos por registro y concepto
@@ -109,10 +107,6 @@ class Percepciones extends Component
             ->show();
     }
 
-    // public function render()
-    // {
-    //     return view('livewire.percepciones.percepciones');
-    // }
     public function render()
     {
         return view('livewire.percepciones.percepciones', [

@@ -22,17 +22,10 @@ class Asistencias extends Component
 
     public function mount()
     {
-        $periodo = PeriodoNomina::whereDate('fecha_inicio', '<=', today())
-            ->whereDate('fecha_fin', '>=', today())
-            ->first();
-
-        if (!$periodo) {
-            $this->registros = collect();
-            return;
-        }
+        $periodos = PeriodoNomina::orderBy('fecha_inicio', 'desc')->pluck('id');
 
         $this->registros = RegistroNomina::with(['empleado', 'asistencias'])
-            ->where('periodo_nomina_id', $periodo->id)
+            ->whereIn('periodo_nomina_id', $periodos)
             ->get();
 
         foreach ($this->registros as $reg) {
@@ -49,15 +42,6 @@ class Asistencias extends Component
             // Guardar en la propiedad del registro para usar después
             $reg->asistencia = $asistencia;
 
-            // $this->dias[$reg->id] = [
-            //     'lunes' => $asistencia->lunes,
-            //     'martes' => $asistencia->martes,
-            //     'miercoles' => $asistencia->miercoles,
-            //     'jueves' => $asistencia->jueves,
-            //     'viernes' => $asistencia->viernes,
-            //     'sabado' => $asistencia->sabado,
-            //     'domingo' => $asistencia->domingo,
-            // ];
             $this->dias[$reg->id] = [
                 'lunes' => (bool) $asistencia->lunes,
                 'martes' => (bool) $asistencia->martes,
@@ -147,10 +131,6 @@ class Asistencias extends Component
             ->show();
     }
 
-    // public function render()
-    // {
-    //     return view('livewire.asistencias.asistencias');
-    // }
     public function render()
     {
         return view('livewire.asistencias.asistencias', [

@@ -32,7 +32,18 @@ class Periodos extends Component
 
     public function verDetalles($id)
     {
-        $this->periodo_detalle = PeriodoNomina::find($id);
+        $this->periodo_detalle = PeriodoNomina::with([
+            'registros',
+            'registros.empleado',
+            'registros.asistencias',
+            'registros.detalles'
+        ])->find($id);
+
+        // Recalcular todos los registros del periodo
+        foreach ($this->periodo_detalle->registros as $registro) {
+            $registro->calcularNomina();
+        }
+
         Flux::modal('detalle-periodo')->show();
     }
 
@@ -111,14 +122,6 @@ class Periodos extends Component
             $horasExtraPagar = $totalHoras * $costoHora;
             $totalDiasPagar = $totalDias * $costoDia;
 
-            // Conceptos
-            // $bonos = $registro->detalles
-            //     ->filter(fn($d) => $d->concepto->tipo === 'percepcion')
-            //     ->sum('monto');
-
-            // $descuentos = $registro->detalles
-            //     ->filter(fn($d) => $d->concepto->tipo === 'deduccion')
-            //     ->sum('monto');
 
             $comidas = $registro->detalles
                 ->filter(fn($d) => strtolower($d->concepto->nombre) === 'comidas')
@@ -135,9 +138,6 @@ class Periodos extends Component
             $anticipo = $registro->detalles
                 ->filter(fn($d) => strtolower($d->concepto->nombre) === 'anticipo')
                 ->sum('monto');
-            // $porPagar = $registro->detalles
-            //     ->filter(fn($d) => strtolower($d->concepto->nombre) === 'por_pagar')
-            //     ->sum('monto');
 
             // ---- CALCULOS IMPORTANTES ----
 
@@ -156,14 +156,6 @@ class Periodos extends Component
 
             // Neto / Saldo Final
             $neto = $percepcionTotal - $deduccionesTotal;
-
-            // === ACTUALIZAR EL REGISTRO DE NOMINA ===
-            // $registro->update([
-            //     'percepciones_totales' => $percepcionTotal,
-            //     'deducciones_totales'  => $deduccionesTotal,
-            //     'total_horas_extras'   => $totalHoras,
-            //     'neto'                 => $neto,
-            // ]);
 
             return [
                 'empleado'            => $registro->empleado->nombre.' '.$registro->empleado->apellido_paterno,
