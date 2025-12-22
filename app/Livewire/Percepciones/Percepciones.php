@@ -4,16 +4,16 @@ namespace App\Livewire\Percepciones;
 
 use App\Models\ConceptoNomina;
 use App\Models\DetalleNomina;
-use App\Models\Empleado;
 use App\Models\PeriodoNomina;
 use App\Models\RegistroNomina;
 use Livewire\Component;
-use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
+use Livewire\WithPagination;
 
 class Percepciones extends Component
 {
-    public $registros;
-    public $conceptos; // percepciones disponibles (comida, apoyo, compensación...)
+    use WithPagination;
+
+    public $conceptos;
     public $montos = [];
 
     // Filtros
@@ -21,53 +21,15 @@ class Percepciones extends Component
     public $periodoId = null;
     public $unidadNegocio = null;
 
-    public function mount()
+    public function updatedSearch()
     {
-        // Detectar período actual
-        $periodos = PeriodoNomina::orderBy('fecha_inicio', 'desc')->pluck('id');
-
-        if (!$periodos) {
-            $this->registros = collect();
-            return;
-        }
-
-        // Cargar conceptos de tipo "percepcion"
-        $this->conceptos = ConceptoNomina::where('tipo', 'percepcion')->get();
-
-        // Cargar registros de nómina con detalles
-        $this->registros = RegistroNomina::with(['empleado', 'detalles.concepto'])
-            ->whereIn('periodo_nomina_id', $periodos)
-            ->get();
-
-        // Inicializar montos por registro y concepto
-        foreach ($this->registros as $reg) {
-            foreach ($this->conceptos as $con) {
-                $detalle = $reg->detalles->firstWhere('concepto_nomina_id', $con->id);
-
-                $this->montos[$reg->id][$con->id] = $detalle ? $detalle->monto : 0;
-            }
-        }
+        $this->resetPage();
     }
 
-    public function getRegistrosFiltradosProperty()
+    public function mount()
     {
-        $registros = $this->registros;
-
-        if ($this->search) {
-            $search = strtolower($this->search);
-
-            $registros = $registros->filter(function ($reg) use ($search) {
-                $nombre = strtolower(
-                    $reg->empleado->nombre . ' ' .
-                    $reg->empleado->apellido_paterno . ' ' .
-                    $reg->empleado->apellido_materno
-                );
-
-                return str_contains($nombre, $search);
-            });
-        }
-
-        return $registros;
+        // Conceptos de tipo percepción
+        $this->conceptos = ConceptoNomina::where('tipo', 'percepcion')->get();
     }
 
     public function guardarFila($registroId)
@@ -99,18 +61,52 @@ class Percepciones extends Component
             'neto' => $total - $registro->deducciones_totales,
         ]);
         $registro->calcularNomina();
-        LivewireAlert::title('¡Éxito!')
-            ->text('Percepciones guardadas correctamente.')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+        
+        $this->dispatch(
+            'notify',
+            message: 'Cambios guardados correctamente',
+            type: 'success'
+        );
     }
 
     public function render()
     {
-        return view('livewire.percepciones.percepciones', [
-            'regs' => $this->registrosFiltrados,
-        ]);
+        $periodos = PeriodoNomina::orderBy('fecha_inicio', 'desc')->pluck('id');
+
+        $regs = RegistroNomina::with([
+                'empleado',
+                'detalles.concepto',
+                'periodoNomina',
+            ])
+            ->whereIn('periodo_nomina_id', $periodos)
+
+            // 🔎 Search por empleado / unidad
+            ->when($this->search, function ($q) {
+                $q->whereHas('empleado', function ($e) {
+                    $e->where(function ($q) {
+                        $q->where('nombre', 'like', "%{$this->search}%")
+                          ->orWhere('apellido_paterno', 'like', "%{$this->search}%")
+                          ->orWhere('apellido_materno', 'like', "%{$this->search}%")
+                          ->orWhere('unidad_negocio', 'like', "%{$this->search}%");
+                    });
+                });
+            })
+
+            ->orderByDesc('id')
+            ->paginate(10);
+
+        // Inicializar montos SOLO de la página actual
+        foreach ($regs as $reg) {
+            foreach ($this->conceptos as $con) {
+                $detalle = $reg->detalles->firstWhere(
+                    'concepto_nomina_id',
+                    $con->id
+                );
+
+                $this->montos[$reg->id][$con->id] = $detalle?->monto ?? 0;
+            }
+        }
+
+        return view('livewire.percepciones.percepciones', compact('regs'));
     }
 }

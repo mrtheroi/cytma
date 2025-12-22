@@ -2,45 +2,62 @@
 
 namespace App\Livewire\Asistencias;
 
-use App\Models\AsistenciaNomina;
-use App\Models\PeriodoNomina;
 use App\Models\RegistroNomina;
+use Carbon\Carbon;
 use Livewire\Component;
-use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
-
+use Livewire\WithPagination;
 
 class Asistencias extends Component
 {
-    public $registros;
+    use WithPagination;
+
+    public $search = '';
     public $dias = [];
     public $horasExtras = [];
 
-    // Filtros
-    public $search = '';
-    public $periodoId = null;
-    public $unidadNegocio = null;
-
-    public function mount()
+    public function updatedSearch()
     {
-        $periodos = PeriodoNomina::orderBy('fecha_inicio', 'desc')->pluck('id');
+        $this->resetPage();
+    }
 
-        $this->registros = RegistroNomina::with(['empleado', 'asistencias'])
-            ->whereIn('periodo_nomina_id', $periodos)
-            ->get();
+    public function render()
+    {
+        $search = $this->search;
 
-        foreach ($this->registros as $reg) {
-            // Obtener asistencia existente
-            $asistencia = $reg->asistencias()->first();
+        if (preg_match('/\d{2}\/\d{2}\/\d{4}/', $search)) {
+            $search = Carbon::createFromFormat('d/m/Y', $search)->format('Y-m-d');
+        }
 
-            // Crear solo si no existe
-            if (!$asistencia) {
-                $asistencia = AsistenciaNomina::create([
-                    'registro_nomina_id' => $reg->id
-                ]);
-            }
+        $regs = RegistroNomina::with([
+                'empleado',
+                'asistencias',
+                'periodoNomina'
+            ])
+            ->when($search, function ($q) use ($search) {
 
-            // Guardar en la propiedad del registro para usar después
-            $reg->asistencia = $asistencia;
+                $q->where(function ($query) use ($search) {
+
+                    // 🔹 Empleado (nombre y apellidos)
+                    $query->whereHas('empleado', function ($e) use ($search) {
+                        $e->where('nombre', 'like', "%{$search}%")
+                        ->orWhere('apellido_paterno', 'like', "%{$search}%")
+                        ->orWhere('apellido_materno', 'like', "%{$search}%")
+                        ->orWhere('unidad_negocio', 'like', "%{$search}%");
+                    });
+
+                    // 🔹 Periodo (fechas)
+                    $query->orWhereHas('periodoNomina', function ($p) use ($search) {
+                        $p->whereDate('fecha_inicio', 'like', "%{$search}%")
+                        ->orWhereDate('fecha_fin', 'like', "%{$search}%");
+                    });
+                });
+            })
+            ->orderByDesc('id')
+            ->paginate(10);
+
+        // Inicializar arrays SOLO para la página actual
+        foreach ($regs as $reg) {
+            $asistencia = $reg->asistencias()->firstOrCreate([]);
 
             $this->dias[$reg->id] = [
                 'lunes' => (bool) $asistencia->lunes,
@@ -62,79 +79,7 @@ class Asistencias extends Component
                 'domingo' => $asistencia->horas_extra_domingo,
             ];
         }
-    }
 
-    public function getRegistrosFiltradosProperty()
-    {
-        $registros = $this->registros;
-
-        if ($this->search) {
-            $search = strtolower($this->search);
-
-            $registros = $registros->filter(function ($reg) use ($search) {
-                $nombre = strtolower(
-                    $reg->empleado->nombre . ' ' .
-                    $reg->empleado->apellido_paterno . ' ' .
-                    $reg->empleado->apellido_materno
-                );
-
-                return str_contains($nombre, $search);
-            });
-        }
-
-        return $registros;
-    }
-
-    protected function applySearch($query)
-    {
-        return $this->search === ''
-            ? $query
-            : $query
-                ->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('email', 'like', '%' . $this->search . '%');
-                });
-    }
-
-    public function guardarFila($registroId)
-    {
-        $asistencia = AsistenciaNomina::where('registro_nomina_id', $registroId)->firstOrFail();
-
-        $asistencia->update([
-            'lunes' => $this->dias[$registroId]['lunes'],
-            'horas_extra_lunes' => $this->horasExtras[$registroId]['lunes'] ?? 0,
-
-            'martes' => $this->dias[$registroId]['martes'],
-            'horas_extra_martes' => $this->horasExtras[$registroId]['martes'] ?? 0,
-
-            'miercoles' => $this->dias[$registroId]['miercoles'],
-            'horas_extra_miercoles' => $this->horasExtras[$registroId]['miercoles'] ?? 0,
-
-            'jueves' => $this->dias[$registroId]['jueves'],
-            'horas_extra_jueves' => $this->horasExtras[$registroId]['jueves'] ?? 0,
-
-            'viernes' => $this->dias[$registroId]['viernes'],
-            'horas_extra_viernes' => $this->horasExtras[$registroId]['viernes'] ?? 0,
-
-            'sabado' => $this->dias[$registroId]['sabado'],
-            'horas_extra_sabado' => $this->horasExtras[$registroId]['sabado'] ?? 0,
-
-            'domingo' => $this->dias[$registroId]['domingo'],
-            'horas_extra_domingo' => $this->horasExtras[$registroId]['domingo'] ?? 0,
-        ]);
-        $asistencia->registroNomina->calcularNomina();
-        LivewireAlert::title('¡Éxito!')
-            ->text('Cambios guardados correctamente.')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
-    }
-
-    public function render()
-    {
-        return view('livewire.asistencias.asistencias', [
-            'regs' => $this->registrosFiltrados,
-        ]);
+        return view('livewire.asistencias.asistencias', compact('regs'));
     }
 }

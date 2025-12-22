@@ -5,19 +5,22 @@ namespace App\Livewire\Periodos;
 use App\Models\AsistenciaNomina;
 use App\Models\DetalleNomina;
 use App\Models\Empleado;
-use Jantinnerezo\LivewireAlert\Facades\LivewireAlert;
 use App\Models\PeriodoNomina;
 use App\Models\RegistroNomina;
 use Carbon\Carbon;
 use Livewire\Component;
-use Flux\Flux;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Livewire\ConfirmModal;
+use Livewire\Attributes\On;
 
 class Periodos extends Component
 {
     public $search;
     public $unidad_negocio = '';
     public $editingId;
+
+    public bool $open = false;
+    public bool $openDetalle = false;   
 
     public $fecha_inicio_crear;
     public $fecha_fin_crear;
@@ -28,6 +31,16 @@ class Periodos extends Component
     {
         $this->fecha_inicio_crear = now()->startOfWeek(Carbon::MONDAY);
         $this->fecha_fin_crear = now()->endOfWeek(Carbon::SUNDAY);
+    }
+
+    protected function applySearch($query)
+    {
+        return $this->search === ''
+            ? $query
+            : $query->where(function ($q) {
+                $q->where('unidad_negocio', 'like', '%' . $this->search . '%')
+                    ->orWhere('fecha_inicio', 'like', '%' . $this->search . '%');
+            });
     }
 
     public function verDetalles($id)
@@ -44,7 +57,8 @@ class Periodos extends Component
             $registro->calcularNomina();
         }
 
-        Flux::modal('detalle-periodo')->show();
+        // Flux::modal('detalle-periodo')->show();
+        $this->openDetalle = true;
     }
 
     public function modalCrearPeriodo()
@@ -68,7 +82,15 @@ class Periodos extends Component
             $this->fecha_fin_crear = $this->fecha_inicio_crear->copy()->addDays(6);
         }
 
-        Flux::modal('nuevo-periodo')->show();
+        //Flux::modal('nuevo-periodo')->show();
+        $this->open = true;
+    }
+
+    public function closeModal(): void
+    {
+        $this->open = false;
+        $this->openDetalle = false;
+        $this->resetValidation();
     }
 
     public function resetForm()
@@ -250,20 +272,39 @@ class Periodos extends Component
             }
         }
 
-        LivewireAlert::title('¡Éxito!')
-            ->text('Periodo creado correctamente')
-            ->success()
-            ->toast()
-            ->position('top-end')
-            ->show();
+        $this->dispatch(
+            'notify',
+            message: 'Periodo creado correctamente',
+            type: 'success'
+        );
+        
+        $this->open = false;
+    }
 
-        Flux::modal('nuevo-periodo')->close();
+        // ----------------------------
+    // Delete (ConfirmModal pattern)
+    // ----------------------------
+    public function deleteConfirmation(int $id): void
+    {
+        $this->dispatch('showConfirmationModal', userId: $id)->to(ConfirmModal::class);
+    }
+
+    #[On('deleteConfirmed')]
+    public function destroy(int $id): void
+    {
+        $user = PeriodoNomina::findOrFail($id);
+        $user->delete();
+
+        $this->dispatch('notify', message: 'El periodo se eliminó con éxito', type: 'success');
+
+        $this->resetPage();
     }
 
     public function render()
     {
-        $query = PeriodoNomina::query();
-        //$query = $this->applySearch($query);
+        // $query = PeriodoNomina::query();
+        $query = PeriodoNomina::withCount('registros');
+        $query = $this->applySearch($query);
 
         $periodos = $query->paginate(10);
 

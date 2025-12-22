@@ -23,3 +23,8 @@ de acuerdo a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - - Implementacion de gestion de roles y permisos
 - - Implementacion de dashboard administrativo
 - - Documentacion inicial en README.md
+
+## [1.0.1] - 2025-12-22
+### Changed
+- Refactorización filtros de búsqueda para la subsecciones de Nómina (Periodos, Asistencias y Percepciones).
+- Actualización de interfaces para los componentes de Periodos, Asistencias y Percepciones.
