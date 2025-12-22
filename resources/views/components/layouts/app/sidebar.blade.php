@@ -16,6 +16,18 @@
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="users" :href="route('usuarios')" :current="request()->routeIs('usuarios')" wire:navigate>{{ __('Usuarios') }}</flux:navlist.item>
 
+                    <flux:navlist.group expandable expanded="false" heading="Categorías" class="hidden lg:grid">
+                        <flux:navlist.item :href="route('unidad')" :current="request()->routeIs('unidad')" wire:navigate>{{ __('Unidad Negocio') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('customer')" :current="request()->routeIs('customer')" wire:navigate>{{ __('Clientes') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('suppliers')" :current="request()->routeIs('suppliers')" wire:navigate>{{ __('Proveedores') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('equipment')" :current="request()->routeIs('equipment')" wire:navigate>{{ __('Maquinaria') }}</flux:navlist.item>
+                        <flux:navlist.item :href="route('trucks')" :current="request()->routeIs('trucks')" wire:navigate>{{ __('Unidades') }}</flux:navlist.item>
+
+                    </flux:navlist.group>
+
+                    <flux:navlist.item icon="user" :href="route('diesel-loads')" :current="request()->routeIs('diesel-loads')" wire:navigate>{{ __('Bitacora Diesel') }}</flux:navlist.item>
+                    <flux:navlist.item icon="user" :href="route('delivery')" :current="request()->routeIs('delivery')" wire:navigate>{{ __('Bitacora Subrasante') }}</flux:navlist.item>
+
                     {{-- <flux:navlist.group expandable expanded="false" icon="document-currency-dollar" heading="Nómina" class="grid">
                         <flux:navlist.item icon="document-currency-dollar" :href="route('periodos')" :current="request()->routeIs('periodos')" wire:navigate>{{ __('Periodos') }}</flux:navlist.item>
                         <flux:navlist.item icon="document-currency-dollar" :href="route('asistencias')" :current="request()->routeIs('asistencias')" wire:navigate>{{ __('Asistencias') }}</flux:navlist.item>
@@ -139,9 +151,11 @@
         </flux:header>
 
         {{ $slot }}
-
+        @stack('scripts')
+        @livewire('notification')
         @fluxScripts
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://kit.fontawesome.com/7228eb10b4.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </body>
 </html>
