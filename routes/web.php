@@ -2,6 +2,7 @@
 
 use App\Livewire\Asistencias\Asistencias;
 use App\Livewire\CustomerController;
+use App\Livewire\DashboardController;
 use App\Livewire\DieselLoadsController;
 use App\Livewire\EquipmentController;
 use App\Livewire\LoginEmpleado\LoginEmpleado;
@@ -29,9 +30,9 @@ Route::get('version', function () {
     ]);
 });
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+//Route::view('dashboard', 'dashboard')
+//    ->middleware(['auth', 'verified'])
+//    ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -47,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('trucks', TrucksController::class)->name('trucks');
     Route::get('customer', CustomerController::class)->name('customer');
     Route::get('delivery', SubrasanteDeliveryController::class)->name('delivery');
+    Route::get('Dashboard', DashboardController::class)->name('dashboard');
 
     Route::get('login-empleado', LoginEmpleado::class)->name('login-empleado');
 

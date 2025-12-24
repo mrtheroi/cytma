@@ -13,6 +13,16 @@ de acuerdo a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * Se incrementa **PATCH**, cuando se implemente un **fix**.
 
 ## [Released]
+## [1.0.2] - 2025-12-24
+### add
+- Agregar controlador y vista para el Dashboard, incluyendo métricas de empleados, proveedores y equipos.
+
+## [1.0.1] - 2025-12-22
+### Changed
+- Refactorización filtros de búsqueda para la subsecciones de Nómina (Periodos, Asistencias y Percepciones).
+- Actualización de interfaces para los componentes de Periodos, Asistencias y Percepciones.
+
+
 # [1.0.0] - 2025-12-22
 ### [add]
 * - creacion del repositorio CYTMA
@@ -23,8 +33,3 @@ de acuerdo a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - - Implementacion de gestion de roles y permisos
 - - Implementacion de dashboard administrativo
 - - Documentacion inicial en README.md
-
-## [1.0.1] - 2025-12-22
-### Changed
-- Refactorización filtros de búsqueda para la subsecciones de Nómina (Periodos, Asistencias y Percepciones).
-- Actualización de interfaces para los componentes de Periodos, Asistencias y Percepciones.
