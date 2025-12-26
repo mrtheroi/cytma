@@ -32,8 +32,72 @@
                            dark:border-white/15 dark:bg-gray-900 dark:text-gray-100"
                 />
             </div>
+
+            <button
+                type="button"
+                wire:click="resetFilters"
+                class="mt-5 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold
+           text-gray-700 ring-1 ring-inset ring-gray-200 shadow-sm hover:bg-gray-50
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600
+           dark:text-gray-200 dark:ring-white/10 dark:hover:bg-gray-800"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 640 640"
+                     class="h-4 w-4 fill-current text-gray-600 dark:text-gray-300"
+                     aria-hidden="true">
+                    <path d="M603.3 59.3C609.5 53.1 609.5 42.9 603.3 36.7C597.1 30.5 586.9 30.5 580.7 36.7L372.7 244.7L354.1 226.1C333.9 205.9 302.7 201.5 277.8 215.4L48.4 342.9C38.3 348.5 32 359.2 32 370.8C32 379.2 35.4 387.4 41.3 393.3L246.7 598.7C252.7 604.7 260.8 608 269.3 608C280.9 608 291.6 601.7 297.2 591.6L424.6 362.2C438.5 337.2 434.1 306.1 413.9 285.9L395.3 267.3L603.3 59.3zM331.5 248.8L391.2 308.5C401.3 318.6 403.5 334.2 396.5 346.7L375.3 384.8L255.1 264.6L293.2 243.4C305.7 236.5 321.3 238.6 331.4 248.7zM226.1 280.8L359.2 413.9L269.2 576L145.9 452.7L187.3 411.3C193.5 405.1 193.5 394.9 187.3 388.7C181.1 382.5 170.9 382.5 164.7 388.7L123.3 430.1L64 370.8L226.1 280.8z"/>
+                </svg>
+                Reset
+            </button>
+
+
         </div>
     </div>
+
+    <div
+        x-data="dashboardCombinedChart({
+        labels: @js($chartLabels ?? []),
+        diesel: @js($chartDiesel ?? []),
+        subrasante: @js($chartSubrasante ?? []),
+    })"
+        x-init="init()"
+        x-on:charts-updated.window="update($event.detail)"
+        class="space-y-3"
+    >
+        <div class="flex items-end justify-between">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Diésel vs Subrasante</h3>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Comparativo por día dentro del periodo seleccionado.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+            <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20
+                         dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-500/30">
+                Diésel (L)
+            </span>
+                <span class="inline-flex items-center rounded-md bg-pink-50 px-2 py-1 text-[11px] font-medium text-pink-700 ring-1 ring-inset ring-pink-600/20
+                         dark:bg-pink-900/30 dark:text-pink-300 dark:ring-pink-500/30">
+                Subrasante (m³)
+            </span>
+            </div>
+        </div>
+
+        <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5 dark:bg-gray-900 dark:ring-white/10">
+            <div class="h-[340px]">
+                <canvas x-ref="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
 
     {{-- =========================
          Grupo 1: Personas & Proveedores
@@ -244,3 +308,75 @@
     </div>
 
 </div>
+
+
+@push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <script>
+        function dashboardCombinedChart(initial) {
+            return {
+                labels: initial.labels ?? [],
+                diesel: initial.diesel ?? [],
+                subrasante: initial.subrasante ?? [],
+                chart: null,
+
+                init() {
+                    const ctx = this.$refs.canvas.getContext('2d');
+
+                    this.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: this.labels,
+                            datasets: [
+                                {
+                                    label: 'Diésel (L)',
+                                    data: this.diesel,
+                                    borderColor: '#2563eb',
+                                    backgroundColor: 'rgba(37, 99, 235, 0.10)',
+                                    tension: 0.35,
+                                    fill: false,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4,
+                                    borderWidth: 2,
+                                    yAxisID: 'y',
+                                },
+                                {
+                                    label: 'Subrasante (m³)',
+                                    data: this.subrasante,
+                                    borderColor: '#db2777',
+                                    backgroundColor: 'rgba(219, 39, 119, 0.10)',
+                                    tension: 0.35,
+                                    fill: false,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4,
+                                    borderWidth: 2,
+                                    yAxisID: 'y1',
+                                },
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: { legend: { display: true, position: 'bottom' } },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { maxRotation: 0 } },
+                                y:  { beginAtZero: true, title: { display: true, text: 'Diésel (L)' } },
+                                y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Subrasante (m³)' } }
+                            }
+                        }
+                    });
+                },
+
+                update(detail) {
+                    if (!this.chart) return;
+                    this.chart.data.labels = detail.labels ?? [];
+                    this.chart.data.datasets[0].data = detail.diesel ?? [];
+                    this.chart.data.datasets[1].data = detail.subrasante ?? [];
+                    this.chart.update();
+                }
+            }
+        }
+    </script>
+@endpush

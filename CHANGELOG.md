@@ -13,6 +13,10 @@ de acuerdo a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * Se incrementa **PATCH**, cuando se implemente un **fix**.
 
 ## [Released]
+## [1.0.3] - 2025-12-25
+### add
+- agregar gráficos de Diésel y Subrasante en el Dashboard.
+
 ## [1.0.2] - 2025-12-24
 ### add
 - Agregar controlador y vista para el Dashboard, incluyendo métricas de empleados, proveedores y equipos.
